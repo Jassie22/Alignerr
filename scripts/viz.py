@@ -42,6 +42,7 @@ def load_data():
     nps_df = pd.read_csv(f'{DATA_DIR}/nps_data.csv')
     feedback_df = pd.read_csv(f'{DATA_DIR}/feedback_data.csv')
     geo_df = pd.read_csv(f'{DATA_DIR}/geographic_data.csv')
+    user_coords_df = pd.read_csv(f'{DATA_DIR}/user_coordinates.csv')
     
     # Convert date columns
     sales_df['date'] = pd.to_datetime(sales_df['date'])
@@ -59,7 +60,8 @@ def load_data():
         'website_df': website_df,
         'nps_df': nps_df,
         'feedback_df': feedback_df,
-        'geo_df': geo_df
+        'geo_df': geo_df,
+        'user_coords_df': user_coords_df
     }
 
 def create_kpi_metrics(data):
@@ -168,49 +170,15 @@ def create_nps_gauge(nps_score):
     return f"Plotly.newPlot('nps-gauge', {json.dumps(gauge_config['data'])}, {json.dumps(gauge_config['layout'])});"
 
 def create_geographic_chart(data):
-    """Create geographic users chart using data from geographic_data.csv with rural distribution"""
+    """Create geographic users chart using pre-generated user coordinates"""
     
-    # Use the geographic data from the CSV file
-    geo_df = data['geo_df']
+    # Load the pre-generated user coordinates
+    user_coords_df = data['user_coords_df']
     
-    # Generate individual user points based on the geographic data
-    np.random.seed(42)  # For reproducible results
-    
-    user_points = []
-    user_id = 1
-    
-    for _, row in geo_df.iterrows():
-        state = row['state']
-        state_name = row['state_name']
-        base_lat = row['lat']
-        base_lon = row['lon']
-        user_count = row['user_count']
-        
-        # Generate individual users for this state/region
-        for i in range(user_count):
-            # Add much more variation for rural spread (within ~200km radius)
-            lat_offset = np.random.normal(0, 1.5)  # ~165km variation for rural areas
-            lon_offset = np.random.normal(0, 1.5)  # ~165km variation for rural areas
-            
-            user_lat = base_lat + lat_offset
-            user_lon = base_lon + lon_offset
-            
-            # Keep within reasonable US bounds
-            user_lat = np.clip(user_lat, 25.0, 49.0)
-            user_lon = np.clip(user_lon, -125.0, -66.0)
-            
-            user_points.append({
-                'lat': user_lat,
-                'lon': user_lon,
-                'state': state,
-                'state_name': state_name,
-                'user_id': user_id
-            })
-            user_id += 1
-    
-    # Convert to arrays for plotly
-    lats = [point['lat'] for point in user_points]
-    lons = [point['lon'] for point in user_points]
+    # Convert to lists for plotly
+    lats = user_coords_df['lat'].tolist()
+    lons = user_coords_df['lon'].tolist()
+    texts = [f"User {row['user_id']} - {row['state_name']}" for _, row in user_coords_df.iterrows()]
     
     chart_config = {
         'data': [{
@@ -229,7 +197,7 @@ def create_geographic_chart(data):
                 'size': 15,
                 'step': 0.5
             },
-            'text': [f"User {point['user_id']} - {point['state_name']}" for point in user_points],
+            'text': texts,
             'hovertemplate': '%{text}<extra></extra>'
         }],
         'layout': {
@@ -268,49 +236,33 @@ def get_top_deals(data):
     return "".join(rows)
 
 def get_extended_feedback(data):
-    """Get extended feedback with more entries"""
+    """Get feedback entries from the CSV data"""
     feedback_df = data['feedback_df']
     
-    # Create more diverse feedback entries and sort by date (most recent first)
-    extended_feedback = [
-        {"text": "OK", "days": 14},
-        {"text": "Very Helpful!!", "days": 60},
-        {"text": "very good \"thumbs up\"", "days": 60},
-        {"text": "Great service, highly recommend", "days": 45},
-        {"text": "Not satisfied with response", "days": 30},
-        {"text": "Excellent support team", "days": 25},
-        {"text": "Could be improved", "days": 20},
-        {"text": "Perfect solution for our needs", "days": 15},
-        {"text": "Fast and efficient", "days": 10},
-        {"text": "Outstanding customer service", "days": 7},
-        {"text": "Good value for money", "days": 5},
-        {"text": "Impressed with quality", "days": 3},
-        {"text": "Meets expectations", "days": 2},
-        {"text": "Highly professional", "days": 1}
-    ]
-    
-    # Sort by days (ascending = most recent first)
-    extended_feedback.sort(key=lambda x: x['days'])
+    # Use the first 14 feedback entries from the CSV file
+    feedback_entries = feedback_df.head(14)
     
     feedback_html = []
-    for feedback in extended_feedback:
-        days = feedback["days"]
-        if days == 0:
+    for _, row in feedback_entries.iterrows():
+        feedback_text = row['feedback_text']
+        days_ago = (datetime.now() - row['date']).days
+        
+        if days_ago == 0:
             time_text = "today"
-        elif days == 1:
+        elif days_ago == 1:
             time_text = "1 day ago"
-        elif days < 30:
-            time_text = f"{days} days ago"
-        elif days < 60:
-            time_text = f"{days//30} month{'s' if days//30 > 1 else ''} ago"
+        elif days_ago < 30:
+            time_text = f"{days_ago} days ago"
+        elif days_ago < 60:
+            time_text = f"{days_ago//30} month{'s' if days_ago//30 > 1 else ''} ago"
         else:
-            time_text = f"{days//30} months ago"
+            time_text = f"{days_ago//30} months ago"
         
         feedback_html.append(f"""
             <div class="feedback-item">
                 <div class="feedback-icon">👍</div>
                 <div class="feedback-content">
-                    <div class="feedback-text">{feedback['text']}</div>
+                    <div class="feedback-text">{feedback_text}</div>
                     <div class="feedback-date">{time_text}</div>
                 </div>
             </div>

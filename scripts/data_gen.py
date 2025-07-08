@@ -374,6 +374,54 @@ def generate_geographic_data() -> pd.DataFrame:
     
     return df
 
+def generate_individual_user_coordinates():
+    """Generate individual user coordinates based on geographic data for map visualization"""
+    print("Generating individual user coordinates...")
+    
+    # Read the geographic data
+    geo_df = pd.read_csv(f'{DATA_DIR}/geographic_data.csv')
+    
+    user_points = []
+    user_id = 1
+    
+    np.random.seed(42)  # For reproducible results
+    
+    for _, row in geo_df.iterrows():
+        state = row['state']
+        state_name = row['state_name']
+        base_lat = row['lat']
+        base_lon = row['lon']
+        user_count = row['user_count']
+        
+        # Generate individual users for this state/region
+        for i in range(user_count):
+            # Add much more variation for rural spread (within ~200km radius)
+            lat_offset = np.random.normal(0, 1.5)  # ~165km variation for rural areas
+            lon_offset = np.random.normal(0, 1.5)  # ~165km variation for rural areas
+            
+            user_lat = base_lat + lat_offset
+            user_lon = base_lon + lon_offset
+            
+            # Keep within reasonable US bounds
+            user_lat = np.clip(user_lat, 25.0, 49.0)
+            user_lon = np.clip(user_lon, -125.0, -66.0)
+            
+            user_points.append({
+                'user_id': user_id,
+                'lat': user_lat,
+                'lon': user_lon,
+                'state': state,
+                'state_name': state_name
+            })
+            user_id += 1
+    
+    # Create DataFrame and save as CSV
+    user_coords_df = pd.DataFrame(user_points)
+    user_coords_df.to_csv(f'{DATA_DIR}/user_coordinates.csv', index=False)
+    
+    print(f"Generated {len(user_points)} individual user coordinates")
+    return user_coords_df
+
 def save_data_files():
     """Save all generated data to CSV and NPY files"""
     print("Saving data files...")
@@ -386,6 +434,9 @@ def save_data_files():
     nps_df = generate_nps_data()
     feedback_df = generate_feedback_data()
     geo_df = generate_geographic_data()
+    
+    # Generate individual user coordinates based on geographic data
+    user_coords_df = generate_individual_user_coordinates()
     
     # Save as CSV files
     sales_df.to_csv(f'{DATA_DIR}/sales_data.csv', index=False)
@@ -418,6 +469,7 @@ def save_data_files():
     print("- nps_data.csv")
     print("- feedback_data.csv")
     print("- geographic_data.csv")
+    print("- user_coordinates.csv")
     print("\nNPY files created:")
     print("- sales_amounts.npy")
     print("- deal_amounts.npy")
