@@ -1,0 +1,632 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Business Dashboard</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background-color: #1a1d29;
+                color: #ffffff;
+                padding: 15px;
+                padding-bottom: 50px;
+            }
+            
+            .dashboard-container {
+                display: grid;
+                grid-template-columns: 240px 1fr;
+                gap: 12px;
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+            
+            .left-panel {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .right-panel {
+                display: grid;
+                grid-template-columns: 300px 1fr 1fr;
+                grid-template-rows: 120px auto;
+                gap: 12px;
+                height: fit-content;
+                align-items: start;
+            }
+            
+            .card {
+                background: #2a3441;
+                border-radius: 12px;
+                padding: 16px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            
+            .metrics-card {
+                background: #2a3441;
+                border-radius: 12px;
+                padding: 16px 18px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+                height: auto;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                min-height: 120px;
+            }
+            
+            .sales-card {
+                text-align: center;
+                padding: 25px 15px;
+                min-height: 280px;
+            }
+            
+            .sales-main {
+                font-size: 42px;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 8px;
+                line-height: 1;
+            }
+            
+            .sales-period {
+                font-size: 13px;
+                color: #94a3b8;
+                margin-bottom: 15px;
+            }
+            
+            .sales-change {
+                font-size: 13px;
+                color: #10b981;
+                font-weight: 500;
+            }
+            
+            .sales-daily {
+                margin-top: 25px;
+                padding-top: 20px;
+                border-top: 1px solid #475569;
+            }
+            
+            .sales-today {
+                font-size: 28px;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 4px;
+                line-height: 1;
+            }
+            
+            .sales-yesterday {
+                font-size: 28px;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 4px;
+                margin-top: 12px;
+                line-height: 1;
+            }
+            
+            .sales-label {
+                font-size: 11px;
+                color: #94a3b8;
+            }
+            
+            .nps-card {
+                text-align: center;
+                padding: 25px 15px;
+                min-height: 280px;
+            }
+            
+            .nps-title {
+                font-size: 13px;
+                color: #94a3b8;
+                margin-bottom: 15px;
+            }
+            
+            .nps-period {
+                font-size: 12px;
+                color: #94a3b8;
+                margin-top: 10px;
+            }
+            
+            .card-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: #ffffff;
+                margin-bottom: 6px;
+            }
+            
+            .deals-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            .deals-table th {
+                background: #1a1d29;
+                color: #94a3b8;
+                font-weight: 500;
+                font-size: 12px;
+                padding: 8px 12px;
+                text-align: left;
+                border-bottom: 1px solid #4a5568;
+            }
+            
+            .social-metrics {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 2px 0;
+            }
+            
+            .social-item {
+                text-align: center;
+                flex: 1;
+            }
+            
+            .social-count {
+                font-size: 16px;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 1px;
+            }
+            
+            .social-label {
+                font-size: 9px;
+                color: #94a3b8;
+                margin-bottom: 1px;
+            }
+            
+            .social-growth {
+                font-size: 8px;
+                color: #10b981;
+                font-weight: 500;
+            }
+            
+            .website-metrics {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 2px 0;
+            }
+            
+            .website-item {
+                text-align: center;
+                flex: 1;
+            }
+            
+            .website-count {
+                font-size: 16px;
+                font-weight: 700;
+                color: #ffffff;
+                margin-bottom: 1px;
+            }
+            
+            .website-label {
+                font-size: 9px;
+                color: #94a3b8;
+                margin-bottom: 1px;
+            }
+            
+            .website-change {
+                font-size: 8px;
+                font-weight: 500;
+            }
+            
+            .positive { color: #10b981; }
+            .negative { color: #ef4444; }
+            
+            .full-width {
+                grid-column: 1 / -1;
+            }
+            
+            .deals-card {
+                grid-column: 1;
+                grid-row: 1;
+            }
+            
+            .social-card {
+                grid-column: 2;
+                grid-row: 1;
+            }
+            
+            .website-card {
+                grid-column: 3;
+                grid-row: 1;
+            }
+            
+            .map-card {
+                grid-column: 2 / 4;
+                grid-row: 2;
+            }
+            
+            .feedback-card {
+                grid-column: 1;
+                grid-row: 2;
+            }
+            
+            .map-container {
+                height: 320px;
+                width: 100%;
+            }
+            
+            .feedback-container {
+                max-height: 180px;
+                overflow-y: auto;
+                padding-right: 8px;
+            }
+            
+            .feedback-container::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .feedback-container::-webkit-scrollbar-track {
+                background: #1a1d29;
+                border-radius: 3px;
+            }
+            
+            .feedback-container::-webkit-scrollbar-thumb {
+                background: #4a5568;
+                border-radius: 3px;
+            }
+            
+            .feedback-item {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 12px;
+                padding: 10px;
+                background: #1a1d29;
+                border-radius: 8px;
+            }
+            
+            .feedback-icon {
+                width: 24px;
+                height: 24px;
+                background: #3b82f6;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 10px;
+                font-size: 12px;
+                flex-shrink: 0;
+            }
+            
+            .feedback-content {
+                flex: 1;
+            }
+            
+            .feedback-text {
+                font-size: 13px;
+                color: #ffffff;
+                margin-bottom: 4px;
+            }
+            
+            .feedback-date {
+                font-size: 11px;
+                color: #94a3b8;
+            }
+            
+            .footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background: #1a1d29;
+                padding: 8px 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 12px;
+                color: #94a3b8;
+                border-top: 1px solid #4a5568;
+            }
+            
+            .footer-left {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            
+            .footer-dot {
+                width: 8px;
+                height: 8px;
+                background: #10b981;
+                border-radius: 50%;
+            }
+            
+
+        </style>
+    </head>
+    <body>
+        <div class="dashboard-container">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Sales Card -->
+                <div class="card sales-card">
+                    <div class="sales-main">$297k</div>
+                    <div class="sales-period">this month</div>
+                    <div class="sales-change">▲ $16k vs last month</div>
+                    
+                    <div class="sales-daily">
+                        <div class="sales-today">$9.6k</div>
+                        <div class="sales-label">today</div>
+                        
+                        <div class="sales-yesterday">$20.6k</div>
+                        <div class="sales-label">yesterday</div>
+                    </div>
+                </div>
+                
+                <!-- NPS Card -->
+                <div class="card nps-card">
+                    <div class="nps-title">NPS (past 30 days)</div>
+                    <div id="nps-gauge"></div>
+                </div>
+            </div>
+            
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- Row 1: Deals and metrics -->
+                <div class="card deals-card">
+                    <div class="card-title">Biggest deals this month</div>
+                    <table class="deals-table">
+                        <thead>
+                            <tr>
+                                <th>Sales Rep</th>
+                                <th style="text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff;">Alice</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff; text-align: right;">$9,181</td>
+            </tr>
+        
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff;">Shaun</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff; text-align: right;">$7,421</td>
+            </tr>
+        
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff;">Jared</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff; text-align: right;">$6,975</td>
+            </tr>
+        
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff;">Shaun</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff; text-align: right;">$6,606</td>
+            </tr>
+        
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff;">Alice</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff; text-align: right;">$6,006</td>
+            </tr>
+        
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff;">Sarah</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff; text-align: right;">$5,511</td>
+            </tr>
+        
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff;">Polly</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff; text-align: right;">$5,432</td>
+            </tr>
+        
+            <tr>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff;">Polly</td>
+                <td style="padding: 8px 12px; border-bottom: 1px solid #4a5568; color: #ffffff; text-align: right;">$5,054</td>
+            </tr>
+        
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Social Followers -->
+                <div class="metrics-card social-card">
+                    <div class="card-title">Social followers</div>
+                    <div class="social-metrics">
+                        <div class="social-item">
+                            <div class="social-count">19.5k</div>
+                            <div class="social-label">LinkedIn</div>
+                            <div class="social-growth">▲ 11 v yday</div>
+                        </div>
+                        <div class="social-item">
+                            <div class="social-count">10.5k</div>
+                            <div class="social-label">Twitter</div>
+                            <div class="social-growth">▲ 22 v yday</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Website Metrics -->
+                <div class="metrics-card website-card">
+                    <div class="card-title">Website (past 7 days)</div>
+                    <div class="website-metrics">
+                        <div class="website-item">
+                            <div class="website-count">27.2k</div>
+                            <div class="website-label">Users</div>
+                            <div class="website-change positive">
+                                ▲ 1.6k vs last week
+                            </div>
+                        </div>
+                        <div class="website-item">
+                            <div class="website-count">126</div>
+                            <div class="website-label">Enquiries</div>
+                            <div class="website-change negative">
+                                ▼ 28 vs last week
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Row 2: Map spanning full width -->
+                <div class="card map-card" style="grid-column: 1 / -1; position: relative; z-index: 1;">
+                    <div class="card-title">Active users</div>
+                    <div class="map-container">
+                        <div id="geo-chart"></div>
+                    </div>
+                </div>
+                
+                <!-- Row 3: Feedback spanning full width -->
+                <div class="card feedback-card" style="grid-column: 1 / -1; position: relative; z-index: 1;">
+                    <div class="card-title">Recent feedback</div>
+                    <div class="feedback-container">
+                        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Highly professional</div>
+                    <div class="feedback-date">1 day ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Meets expectations</div>
+                    <div class="feedback-date">2 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Impressed with quality</div>
+                    <div class="feedback-date">3 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Good value for money</div>
+                    <div class="feedback-date">5 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Outstanding customer service</div>
+                    <div class="feedback-date">7 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Fast and efficient</div>
+                    <div class="feedback-date">10 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">OK</div>
+                    <div class="feedback-date">14 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Perfect solution for our needs</div>
+                    <div class="feedback-date">15 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Could be improved</div>
+                    <div class="feedback-date">20 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Excellent support team</div>
+                    <div class="feedback-date">25 days ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Not satisfied with response</div>
+                    <div class="feedback-date">1 month ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Great service, highly recommend</div>
+                    <div class="feedback-date">1 month ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">Very Helpful!!</div>
+                    <div class="feedback-date">2 months ago</div>
+                </div>
+            </div>
+        
+            <div class="feedback-item">
+                <div class="feedback-icon">👍</div>
+                <div class="feedback-content">
+                    <div class="feedback-text">very good "thumbs up"</div>
+                    <div class="feedback-date">2 months ago</div>
+                </div>
+            </div>
+        
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-left">
+                <div class="footer-dot"></div>
+                <span>Daily pulse dashboard</span>
+            </div>
+            <div class="footer-right">
+                <span id="current-time"></span>
+            </div>
+        </div>
+        
+        <script>
+            // Render charts
+            Plotly.newPlot('nps-gauge', [{"type": "indicator", "mode": "gauge+number", "value": 61, "domain": {"x": [0, 1], "y": [0, 1]}, "title": {"text": ""}, "number": {"font": {"size": 24, "color": "#ffffff"}}, "gauge": {"axis": {"range": [0, 100], "tickcolor": "#94a3b8", "tickfont": {"size": 10, "color": "#94a3b8"}}, "bar": {"color": "rgba(255,255,255,0.1)", "thickness": 0.3}, "bgcolor": "#1a1d29", "borderwidth": 2, "bordercolor": "#94a3b8", "steps": [{"range": [0, 50], "color": "#dc2626"}, {"range": [50, 100], "color": "#16a34a"}], "threshold": {"line": {"color": "#ffffff", "width": 6}, "thickness": 0.9, "value": 61}}}], {"paper_bgcolor": "#2a3441", "plot_bgcolor": "#2a3441", "font": {"color": "#ffffff", "size": 12}, "margin": {"l": 0, "r": 0, "t": 0, "b": 0}, "height": 160, "width": 200, "shapes": [{"type": "line", "x0": 0.5, "y0": 0.25, "x1": 0.5, "y1": 0.75, "line": {"color": "#ffffff", "width": 6}, "xref": "paper", "yref": "paper"}]});
+            Plotly.newPlot('geo-chart', [{"type": "scattergeo", "lat": [40.7128, 42.3601, 39.9526, 38.9072, 33.749, 25.7617, 35.2271, 30.3322, 41.8781, 42.3314, 44.9778, 38.627, 29.7604, 32.7767, 29.4241, 30.2672, 33.4484, 34.0522, 37.7749, 32.7157, 47.6062, 45.5152, 39.7392, 40.7608, 36.1699, 39.0997, 36.1627, 39.7684, 39.9612, 27.9506, 29.9511], "lon": [-74.006, -71.0589, -75.1652, -77.0369, -84.388, -80.1918, -80.8431, -81.6557, -87.6298, -83.0458, -93.265, -90.1994, -95.3698, -96.797, -98.4936, -97.7431, -112.074, -118.2437, -122.4194, -117.1611, -122.3321, -122.6784, -104.9903, -111.891, -115.1398, -94.5786, -86.7816, -86.1581, -82.9988, -82.4572, -90.0715], "mode": "markers", "marker": {"size": [40.0, 20.0, 17.5, 15.0, 25.0, 20.0, 12.5, 10.0, 35.0, 17.5, 15.0, 12.5, 30.0, 27.5, 15.0, 20.0, 25.0, 45.0, 30.0, 20.0, 25.0, 15.0, 20.0, 10.0, 15.0, 10.0, 12.5, 10.0, 10.0, 12.5, 10.0], "color": "#06b6d4", "opacity": 0.8, "sizemode": "diameter", "line": {"width": 0}}, "text": ["New York: 800 users", "Boston: 400 users", "Philadelphia: 350 users", "Washington DC: 300 users", "Atlanta: 500 users", "Miami: 400 users", "Charlotte: 250 users", "Jacksonville: 200 users", "Chicago: 700 users", "Detroit: 350 users", "Minneapolis: 300 users", "St Louis: 250 users", "Houston: 600 users", "Dallas: 550 users", "San Antonio: 300 users", "Austin: 400 users", "Phoenix: 500 users", "Los Angeles: 900 users", "San Francisco: 600 users", "San Diego: 400 users", "Seattle: 500 users", "Portland: 300 users", "Denver: 400 users", "Salt Lake City: 200 users", "Las Vegas: 300 users", "Kansas City: 200 users", "Nashville: 250 users", "Indianapolis: 200 users", "Columbus: 200 users", "Tampa: 250 users", "New Orleans: 200 users"], "hovertemplate": "%{text}<extra></extra>"}], {"paper_bgcolor": "#2a3441", "plot_bgcolor": "#2a3441", "font": {"color": "#ffffff", "family": "Arial"}, "geo": {"scope": "usa", "showland": true, "landcolor": "#4a5568", "showlakes": true, "lakecolor": "#2d3748", "projection": {"type": "albers usa"}, "bgcolor": "#2a3441", "coastlinecolor": "#64748b", "countrycolor": "#64748b", "showframe": false, "showcoastlines": true}, "margin": {"l": 0, "r": 0, "t": 0, "b": 0}, "height": 320, "showlegend": false});
+            
+            // Update time in footer
+            function updateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                document.getElementById('current-time').textContent = timeString;
+            }
+            
+            // Update time immediately and then every second
+            updateTime();
+            setInterval(updateTime, 1000);
+        </script>
+    </body>
+    </html>
+    
