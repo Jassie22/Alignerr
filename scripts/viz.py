@@ -168,106 +168,125 @@ def create_nps_gauge(nps_score):
     return f"Plotly.newPlot('nps-gauge', {json.dumps(gauge_config['data'])}, {json.dumps(gauge_config['layout'])});"
 
 def create_geographic_chart(data):
-    """Create geographic users chart with distributed user points across USA"""
+    """Create geographic users chart with individual points that cluster on zoom out"""
     
-    # Generate distributed user points across the US
+    # Generate individual user points across the US
     np.random.seed(42)  # For reproducible results
     
-    # Create a more evenly distributed pattern across US states
-    us_regions = [
-        # Northeast
-        {'name': 'New York', 'lat': 40.7128, 'lon': -74.0060, 'users': 800},
-        {'name': 'Boston', 'lat': 42.3601, 'lon': -71.0589, 'users': 400},
-        {'name': 'Philadelphia', 'lat': 39.9526, 'lon': -75.1652, 'users': 350},
-        {'name': 'Washington DC', 'lat': 38.9072, 'lon': -77.0369, 'users': 300},
-        
-        # Southeast
-        {'name': 'Atlanta', 'lat': 33.7490, 'lon': -84.3880, 'users': 500},
-        {'name': 'Miami', 'lat': 25.7617, 'lon': -80.1918, 'users': 400},
-        {'name': 'Charlotte', 'lat': 35.2271, 'lon': -80.8431, 'users': 250},
-        {'name': 'Jacksonville', 'lat': 30.3322, 'lon': -81.6557, 'users': 200},
-        
-        # Midwest
-        {'name': 'Chicago', 'lat': 41.8781, 'lon': -87.6298, 'users': 700},
-        {'name': 'Detroit', 'lat': 42.3314, 'lon': -83.0458, 'users': 350},
-        {'name': 'Minneapolis', 'lat': 44.9778, 'lon': -93.2650, 'users': 300},
-        {'name': 'St Louis', 'lat': 38.6270, 'lon': -90.1994, 'users': 250},
-        
-        # Southwest
+    # Major US cities with realistic user distributions
+    us_cities = [
+        {'name': 'New York', 'lat': 40.7128, 'lon': -74.0060, 'users': 1200},
+        {'name': 'Los Angeles', 'lat': 34.0522, 'lon': -118.2437, 'users': 1000},
+        {'name': 'Chicago', 'lat': 41.8781, 'lon': -87.6298, 'users': 800},
         {'name': 'Houston', 'lat': 29.7604, 'lon': -95.3698, 'users': 600},
-        {'name': 'Dallas', 'lat': 32.7767, 'lon': -96.7970, 'users': 550},
-        {'name': 'San Antonio', 'lat': 29.4241, 'lon': -98.4936, 'users': 300},
-        {'name': 'Austin', 'lat': 30.2672, 'lon': -97.7431, 'users': 400},
         {'name': 'Phoenix', 'lat': 33.4484, 'lon': -112.0740, 'users': 500},
-        
-        # West Coast
-        {'name': 'Los Angeles', 'lat': 34.0522, 'lon': -118.2437, 'users': 900},
-        {'name': 'San Francisco', 'lat': 37.7749, 'lon': -122.4194, 'users': 600},
+        {'name': 'Philadelphia', 'lat': 39.9526, 'lon': -75.1652, 'users': 400},
+        {'name': 'San Antonio', 'lat': 29.4241, 'lon': -98.4936, 'users': 300},
         {'name': 'San Diego', 'lat': 32.7157, 'lon': -117.1611, 'users': 400},
-        {'name': 'Seattle', 'lat': 47.6062, 'lon': -122.3321, 'users': 500},
-        {'name': 'Portland', 'lat': 45.5152, 'lon': -122.6784, 'users': 300},
-        
-        # Mountain West
-        {'name': 'Denver', 'lat': 39.7392, 'lon': -104.9903, 'users': 400},
-        {'name': 'Salt Lake City', 'lat': 40.7608, 'lon': -111.8910, 'users': 200},
-        {'name': 'Las Vegas', 'lat': 36.1699, 'lon': -115.1398, 'users': 300},
-        
-        # Other regions
-        {'name': 'Kansas City', 'lat': 39.0997, 'lon': -94.5786, 'users': 200},
-        {'name': 'Nashville', 'lat': 36.1627, 'lon': -86.7816, 'users': 250},
-        {'name': 'Indianapolis', 'lat': 39.7684, 'lon': -86.1581, 'users': 200},
+        {'name': 'Dallas', 'lat': 32.7767, 'lon': -96.7970, 'users': 500},
+        {'name': 'San Jose', 'lat': 37.3382, 'lon': -121.8863, 'users': 350},
+        {'name': 'Austin', 'lat': 30.2672, 'lon': -97.7431, 'users': 400},
+        {'name': 'Jacksonville', 'lat': 30.3322, 'lon': -81.6557, 'users': 200},
+        {'name': 'Fort Worth', 'lat': 32.7555, 'lon': -97.3308, 'users': 250},
         {'name': 'Columbus', 'lat': 39.9612, 'lon': -82.9988, 'users': 200},
-        {'name': 'Tampa', 'lat': 27.9506, 'lon': -82.4572, 'users': 250},
-        {'name': 'New Orleans', 'lat': 29.9511, 'lon': -90.0715, 'users': 200}
+        {'name': 'San Francisco', 'lat': 37.7749, 'lon': -122.4194, 'users': 600},
+        {'name': 'Charlotte', 'lat': 35.2271, 'lon': -80.8431, 'users': 250},
+        {'name': 'Indianapolis', 'lat': 39.7684, 'lon': -86.1581, 'users': 200},
+        {'name': 'Seattle', 'lat': 47.6062, 'lon': -122.3321, 'users': 500},
+        {'name': 'Denver', 'lat': 39.7392, 'lon': -104.9903, 'users': 400},
+        {'name': 'Washington DC', 'lat': 38.9072, 'lon': -77.0369, 'users': 450},
+        {'name': 'Boston', 'lat': 42.3601, 'lon': -71.0589, 'users': 400},
+        {'name': 'El Paso', 'lat': 31.7619, 'lon': -106.4850, 'users': 150},
+        {'name': 'Detroit', 'lat': 42.3314, 'lon': -83.0458, 'users': 300},
+        {'name': 'Nashville', 'lat': 36.1627, 'lon': -86.7816, 'users': 250},
+        {'name': 'Portland', 'lat': 45.5152, 'lon': -122.6784, 'users': 300},
+        {'name': 'Memphis', 'lat': 35.1495, 'lon': -90.0490, 'users': 150},
+        {'name': 'Oklahoma City', 'lat': 35.4676, 'lon': -97.5164, 'users': 150},
+        {'name': 'Las Vegas', 'lat': 36.1699, 'lon': -115.1398, 'users': 300},
+        {'name': 'Louisville', 'lat': 38.2527, 'lon': -85.7585, 'users': 150},
+        {'name': 'Baltimore', 'lat': 39.2904, 'lon': -76.6122, 'users': 200},
+        {'name': 'Milwaukee', 'lat': 43.0389, 'lon': -87.9065, 'users': 200},
+        {'name': 'Albuquerque', 'lat': 35.0844, 'lon': -106.6504, 'users': 150},
+        {'name': 'Tucson', 'lat': 32.2226, 'lon': -110.9747, 'users': 150},
+        {'name': 'Fresno', 'lat': 36.7378, 'lon': -119.7871, 'users': 100},
+        {'name': 'Sacramento', 'lat': 38.5816, 'lon': -121.4944, 'users': 200},
+        {'name': 'Mesa', 'lat': 33.4152, 'lon': -111.8315, 'users': 100},
+        {'name': 'Kansas City', 'lat': 39.0997, 'lon': -94.5786, 'users': 200},
+        {'name': 'Atlanta', 'lat': 33.7490, 'lon': -84.3880, 'users': 500},
+        {'name': 'Colorado Springs', 'lat': 38.8339, 'lon': -104.8214, 'users': 100},
+        {'name': 'Raleigh', 'lat': 35.7796, 'lon': -78.6382, 'users': 200},
+        {'name': 'Miami', 'lat': 25.7617, 'lon': -80.1918, 'users': 400},
+        {'name': 'Virginia Beach', 'lat': 36.8529, 'lon': -75.9780, 'users': 100},
+        {'name': 'Omaha', 'lat': 41.2565, 'lon': -95.9345, 'users': 100},
+        {'name': 'Oakland', 'lat': 37.8044, 'lon': -122.2712, 'users': 200},
+        {'name': 'Minneapolis', 'lat': 44.9778, 'lon': -93.2650, 'users': 300},
+        {'name': 'Tulsa', 'lat': 36.1540, 'lon': -95.9928, 'users': 100},
+        {'name': 'Arlington', 'lat': 32.7357, 'lon': -97.1081, 'users': 100},
+        {'name': 'Tampa', 'lat': 27.9506, 'lon': -82.4572, 'users': 300},
+        {'name': 'New Orleans', 'lat': 29.9511, 'lon': -90.0715, 'users': 200},
+        {'name': 'Wichita', 'lat': 37.6872, 'lon': -97.3301, 'users': 100}
     ]
     
-    # Create arrays for plotting - one point per region center
-    lats = []
-    lons = []
-    sizes = []
-    texts = []
+    # Generate individual user points
+    user_points = []
+    user_id = 1
     
-    for region in us_regions:
-        lats.append(region['lat'])
-        lons.append(region['lon'])
-        sizes.append(region['users'] / 20)  # Scale for visualization
-        texts.append(f"{region['name']}: {region['users']} users")
+    for city in us_cities:
+        for i in range(city['users']):
+            # Add random variation around city center (within ~20km radius)
+            lat_offset = np.random.normal(0, 0.15)  # ~16km variation
+            lon_offset = np.random.normal(0, 0.15)  # ~16km variation
+            
+            user_lat = city['lat'] + lat_offset
+            user_lon = city['lon'] + lon_offset
+            
+            # Keep within US bounds
+            user_lat = np.clip(user_lat, 25.0, 49.0)
+            user_lon = np.clip(user_lon, -125.0, -66.0)
+            
+            user_points.append({
+                'lat': user_lat,
+                'lon': user_lon,
+                'city': city['name'],
+                'user_id': user_id
+            })
+            user_id += 1
+    
+    # Convert to arrays for plotly
+    lats = [point['lat'] for point in user_points]
+    lons = [point['lon'] for point in user_points]
     
     chart_config = {
         'data': [{
-            'type': 'scattergeo',
+            'type': 'scattermapbox',
             'lat': lats,
             'lon': lons,
             'mode': 'markers',
             'marker': {
-                'size': sizes,
+                'size': 6,
                 'color': BRIGHT_TURQUOISE,
-                'opacity': 0.8,
-                'sizemode': 'diameter',
-                'line': {'width': 0}
+                'opacity': 0.7
             },
-            'text': texts,
+            'cluster': {
+                'enabled': True,
+                'color': BRIGHT_TURQUOISE,
+                'size': 15,
+                'step': 0.5
+            },
+            'text': [f"User {point['user_id']} - {point['city']}" for point in user_points],
             'hovertemplate': '%{text}<extra></extra>'
         }],
         'layout': {
+            'mapbox': {
+                'style': 'carto-darkmatter',
+                'center': {'lat': 39.8283, 'lon': -98.5795},
+                'zoom': 3.5
+            },
             'paper_bgcolor': CARD_BG,
             'plot_bgcolor': CARD_BG,
             'font': {'color': TEXT_PRIMARY, 'family': 'Arial'},
-            'geo': {
-                'scope': 'usa',
-                'showland': True,
-                'landcolor': '#4a5568',
-                'showlakes': True,
-                'lakecolor': '#2d3748',
-                'projection': {'type': 'albers usa'},
-                'bgcolor': CARD_BG,
-                'coastlinecolor': '#64748b',
-                'countrycolor': '#64748b',
-                'showframe': False,
-                'showcoastlines': True
-            },
             'margin': {'l': 0, 'r': 0, 't': 0, 'b': 0},
-            'height': 320,
+            'height': 280,
             'showlegend': False
         }
     }
@@ -380,8 +399,10 @@ def create_dashboard_html(data, metrics):
                 display: grid;
                 grid-template-columns: 240px 1fr;
                 gap: 12px;
-                max-width: 1400px;
+                max-width: 100vw;
                 margin: 0 auto;
+                padding: 0 20px;
+                box-sizing: border-box;
             }}
             
             .left-panel {{
@@ -393,7 +414,7 @@ def create_dashboard_html(data, metrics):
             .right-panel {{
                 display: grid;
                 grid-template-columns: 300px 1fr 1fr;
-                grid-template-rows: 120px auto;
+                grid-template-rows: 120px 280px auto;
                 gap: 12px;
                 height: fit-content;
                 align-items: start;
@@ -405,6 +426,8 @@ def create_dashboard_html(data, metrics):
                 padding: 16px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
                 border: 1px solid rgba(255, 255, 255, 0.05);
+                position: relative;
+                z-index: 1;
             }}
             
             .metrics-card {{
@@ -607,14 +630,18 @@ def create_dashboard_html(data, metrics):
             }}
             
             .map-container {{
-                height: 320px;
+                height: 280px;
                 width: 100%;
+                position: relative;
+                z-index: 1;
             }}
             
             .feedback-container {{
                 max-height: 180px;
                 overflow-y: auto;
                 padding-right: 8px;
+                position: relative;
+                z-index: 1;
             }}
             
             .feedback-container::-webkit-scrollbar {{
@@ -696,6 +723,29 @@ def create_dashboard_html(data, metrics):
                 border-radius: 50%;
             }}
             
+            @media (max-width: 1200px) {{
+                .dashboard-container {{
+                    grid-template-columns: 200px 1fr;
+                    gap: 8px;
+                    padding: 0 10px;
+                }}
+                
+                .right-panel {{
+                    grid-template-columns: 250px 1fr 1fr;
+                }}
+            }}
+            
+            @media (max-width: 900px) {{
+                .dashboard-container {{
+                    grid-template-columns: 1fr;
+                    gap: 12px;
+                }}
+                
+                .right-panel {{
+                    grid-template-columns: 1fr 1fr;
+                    grid-template-rows: auto auto auto;
+                }}
+            }}
 
         </style>
     </head>
@@ -781,8 +831,8 @@ def create_dashboard_html(data, metrics):
                     </div>
                 </div>
                 
-                <!-- Row 2: Map spanning full width -->
-                <div class="card map-card" style="grid-column: 1 / -1; position: relative; z-index: 1;">
+                <!-- Row 2: Map spanning only social/website columns -->
+                <div class="card map-card" style="grid-column: 2 / -1;">
                     <div class="card-title">Active users</div>
                     <div class="map-container">
                         <div id="geo-chart"></div>
@@ -790,7 +840,7 @@ def create_dashboard_html(data, metrics):
                 </div>
                 
                 <!-- Row 3: Feedback spanning full width -->
-                <div class="card feedback-card" style="grid-column: 1 / -1; position: relative; z-index: 1;">
+                <div class="card feedback-card" style="grid-column: 1 / -1;">
                     <div class="card-title">Recent feedback</div>
                     <div class="feedback-container">
                         {extended_feedback}
