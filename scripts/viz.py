@@ -168,86 +168,42 @@ def create_nps_gauge(nps_score):
     return f"Plotly.newPlot('nps-gauge', {json.dumps(gauge_config['data'])}, {json.dumps(gauge_config['layout'])});"
 
 def create_geographic_chart(data):
-    """Create geographic users chart with individual points that cluster on zoom out"""
+    """Create geographic users chart using data from geographic_data.csv with rural distribution"""
     
-    # Generate individual user points across the US
+    # Use the geographic data from the CSV file
+    geo_df = data['geo_df']
+    
+    # Generate individual user points based on the geographic data
     np.random.seed(42)  # For reproducible results
     
-    # Major US cities with realistic user distributions
-    us_cities = [
-        {'name': 'New York', 'lat': 40.7128, 'lon': -74.0060, 'users': 1200},
-        {'name': 'Los Angeles', 'lat': 34.0522, 'lon': -118.2437, 'users': 1000},
-        {'name': 'Chicago', 'lat': 41.8781, 'lon': -87.6298, 'users': 800},
-        {'name': 'Houston', 'lat': 29.7604, 'lon': -95.3698, 'users': 600},
-        {'name': 'Phoenix', 'lat': 33.4484, 'lon': -112.0740, 'users': 500},
-        {'name': 'Philadelphia', 'lat': 39.9526, 'lon': -75.1652, 'users': 400},
-        {'name': 'San Antonio', 'lat': 29.4241, 'lon': -98.4936, 'users': 300},
-        {'name': 'San Diego', 'lat': 32.7157, 'lon': -117.1611, 'users': 400},
-        {'name': 'Dallas', 'lat': 32.7767, 'lon': -96.7970, 'users': 500},
-        {'name': 'San Jose', 'lat': 37.3382, 'lon': -121.8863, 'users': 350},
-        {'name': 'Austin', 'lat': 30.2672, 'lon': -97.7431, 'users': 400},
-        {'name': 'Jacksonville', 'lat': 30.3322, 'lon': -81.6557, 'users': 200},
-        {'name': 'Fort Worth', 'lat': 32.7555, 'lon': -97.3308, 'users': 250},
-        {'name': 'Columbus', 'lat': 39.9612, 'lon': -82.9988, 'users': 200},
-        {'name': 'San Francisco', 'lat': 37.7749, 'lon': -122.4194, 'users': 600},
-        {'name': 'Charlotte', 'lat': 35.2271, 'lon': -80.8431, 'users': 250},
-        {'name': 'Indianapolis', 'lat': 39.7684, 'lon': -86.1581, 'users': 200},
-        {'name': 'Seattle', 'lat': 47.6062, 'lon': -122.3321, 'users': 500},
-        {'name': 'Denver', 'lat': 39.7392, 'lon': -104.9903, 'users': 400},
-        {'name': 'Washington DC', 'lat': 38.9072, 'lon': -77.0369, 'users': 450},
-        {'name': 'Boston', 'lat': 42.3601, 'lon': -71.0589, 'users': 400},
-        {'name': 'El Paso', 'lat': 31.7619, 'lon': -106.4850, 'users': 150},
-        {'name': 'Detroit', 'lat': 42.3314, 'lon': -83.0458, 'users': 300},
-        {'name': 'Nashville', 'lat': 36.1627, 'lon': -86.7816, 'users': 250},
-        {'name': 'Portland', 'lat': 45.5152, 'lon': -122.6784, 'users': 300},
-        {'name': 'Memphis', 'lat': 35.1495, 'lon': -90.0490, 'users': 150},
-        {'name': 'Oklahoma City', 'lat': 35.4676, 'lon': -97.5164, 'users': 150},
-        {'name': 'Las Vegas', 'lat': 36.1699, 'lon': -115.1398, 'users': 300},
-        {'name': 'Louisville', 'lat': 38.2527, 'lon': -85.7585, 'users': 150},
-        {'name': 'Baltimore', 'lat': 39.2904, 'lon': -76.6122, 'users': 200},
-        {'name': 'Milwaukee', 'lat': 43.0389, 'lon': -87.9065, 'users': 200},
-        {'name': 'Albuquerque', 'lat': 35.0844, 'lon': -106.6504, 'users': 150},
-        {'name': 'Tucson', 'lat': 32.2226, 'lon': -110.9747, 'users': 150},
-        {'name': 'Fresno', 'lat': 36.7378, 'lon': -119.7871, 'users': 100},
-        {'name': 'Sacramento', 'lat': 38.5816, 'lon': -121.4944, 'users': 200},
-        {'name': 'Mesa', 'lat': 33.4152, 'lon': -111.8315, 'users': 100},
-        {'name': 'Kansas City', 'lat': 39.0997, 'lon': -94.5786, 'users': 200},
-        {'name': 'Atlanta', 'lat': 33.7490, 'lon': -84.3880, 'users': 500},
-        {'name': 'Colorado Springs', 'lat': 38.8339, 'lon': -104.8214, 'users': 100},
-        {'name': 'Raleigh', 'lat': 35.7796, 'lon': -78.6382, 'users': 200},
-        {'name': 'Miami', 'lat': 25.7617, 'lon': -80.1918, 'users': 400},
-        {'name': 'Virginia Beach', 'lat': 36.8529, 'lon': -75.9780, 'users': 100},
-        {'name': 'Omaha', 'lat': 41.2565, 'lon': -95.9345, 'users': 100},
-        {'name': 'Oakland', 'lat': 37.8044, 'lon': -122.2712, 'users': 200},
-        {'name': 'Minneapolis', 'lat': 44.9778, 'lon': -93.2650, 'users': 300},
-        {'name': 'Tulsa', 'lat': 36.1540, 'lon': -95.9928, 'users': 100},
-        {'name': 'Arlington', 'lat': 32.7357, 'lon': -97.1081, 'users': 100},
-        {'name': 'Tampa', 'lat': 27.9506, 'lon': -82.4572, 'users': 300},
-        {'name': 'New Orleans', 'lat': 29.9511, 'lon': -90.0715, 'users': 200},
-        {'name': 'Wichita', 'lat': 37.6872, 'lon': -97.3301, 'users': 100}
-    ]
-    
-    # Generate individual user points
     user_points = []
     user_id = 1
     
-    for city in us_cities:
-        for i in range(city['users']):
-            # Add random variation around city center (within ~20km radius)
-            lat_offset = np.random.normal(0, 0.15)  # ~16km variation
-            lon_offset = np.random.normal(0, 0.15)  # ~16km variation
+    for _, row in geo_df.iterrows():
+        state = row['state']
+        state_name = row['state_name']
+        base_lat = row['lat']
+        base_lon = row['lon']
+        user_count = row['user_count']
+        
+        # Generate individual users for this state/region
+        for i in range(user_count):
+            # Add much more variation for rural spread (within ~200km radius)
+            lat_offset = np.random.normal(0, 1.5)  # ~165km variation for rural areas
+            lon_offset = np.random.normal(0, 1.5)  # ~165km variation for rural areas
             
-            user_lat = city['lat'] + lat_offset
-            user_lon = city['lon'] + lon_offset
+            user_lat = base_lat + lat_offset
+            user_lon = base_lon + lon_offset
             
-            # Keep within US bounds
+            # Keep within reasonable US bounds
             user_lat = np.clip(user_lat, 25.0, 49.0)
             user_lon = np.clip(user_lon, -125.0, -66.0)
             
             user_points.append({
                 'lat': user_lat,
                 'lon': user_lon,
-                'city': city['name'],
+                'state': state,
+                'state_name': state_name,
                 'user_id': user_id
             })
             user_id += 1
@@ -273,7 +229,7 @@ def create_geographic_chart(data):
                 'size': 15,
                 'step': 0.5
             },
-            'text': [f"User {point['user_id']} - {point['city']}" for point in user_points],
+            'text': [f"User {point['user_id']} - {point['state_name']}" for point in user_points],
             'hovertemplate': '%{text}<extra></extra>'
         }],
         'layout': {
@@ -414,7 +370,7 @@ def create_dashboard_html(data, metrics):
             .right-panel {{
                 display: grid;
                 grid-template-columns: 300px 1fr 1fr;
-                grid-template-rows: 120px 280px auto;
+                grid-template-rows: 120px 280px 180px;
                 gap: 12px;
                 height: fit-content;
                 align-items: start;
@@ -777,7 +733,7 @@ def create_dashboard_html(data, metrics):
             
             <!-- Right Panel -->
             <div class="right-panel">
-                <!-- Row 1: Deals and metrics -->
+                <!-- Row 1: Deals, Social, Website -->
                 <div class="card deals-card">
                     <div class="card-title">Biggest deals this month</div>
                     <table class="deals-table">
@@ -831,7 +787,7 @@ def create_dashboard_html(data, metrics):
                     </div>
                 </div>
                 
-                <!-- Row 2: Map spanning only social/website columns -->
+                <!-- Row 2: Map spanning social/website columns -->
                 <div class="card map-card" style="grid-column: 2 / -1;">
                     <div class="card-title">Active users</div>
                     <div class="map-container">
@@ -839,13 +795,16 @@ def create_dashboard_html(data, metrics):
                     </div>
                 </div>
                 
-                <!-- Row 3: Feedback spanning full width -->
-                <div class="card feedback-card" style="grid-column: 1 / -1;">
+                <!-- Row 2: Recent feedback below deals (same column as deals) -->
+                <div class="card feedback-card" style="grid-column: 1; grid-row: 2;">
                     <div class="card-title">Recent feedback</div>
                     <div class="feedback-container">
                         {extended_feedback}
                     </div>
                 </div>
+                
+                <!-- Row 3: Empty space for layout -->
+                <div style="grid-column: 1; grid-row: 3;"></div>
             </div>
         </div>
         
